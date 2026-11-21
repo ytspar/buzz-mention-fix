@@ -43,6 +43,9 @@ class _NotificationsSection extends ConsumerWidget {
 
     void retryOptOut() => unawaited(communities.retryPushOptOut(community.id));
 
+    void keepOn() =>
+        unawaited(communities.setPushNotificationsEnabled(community.id, true));
+
     void setEnabled(bool enabled) {
       if (optOutFailed) return retryOptOut();
       unawaited(communities.setPushNotificationsEnabled(community.id, enabled));
@@ -66,6 +69,8 @@ class _NotificationsSection extends ConsumerWidget {
               AppListRow(
                 key: const ValueKey('push-notifications-enabled'),
                 title: 'Notifications',
+                // Until the relay confirms, off is not yet true.
+                subtitle: turningOff ? 'Turning off…' : null,
                 // Reserve horizontal room without letting the switch's 48dp
                 // layout height expand this single-line row.
                 trailing: const SizedBox(width: 60),
@@ -90,9 +95,18 @@ class _NotificationsSection extends ConsumerWidget {
             title: "Couldn't turn off notifications",
             titleColor: context.colors.error,
             subtitle: 'They may continue.',
-            trailing: TextButton(
-              onPressed: retryOptOut,
-              child: const Text('Retry'),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextButton(onPressed: keepOn, child: const Text('Keep on')),
+                TextButton(
+                  onPressed: retryOptOut,
+                  child: const Text(
+                    'Retry',
+                    semanticsLabel: 'Retry turning off notifications',
+                  ),
+                ),
+              ],
             ),
           ),
       ],
